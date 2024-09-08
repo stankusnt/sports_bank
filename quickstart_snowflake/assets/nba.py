@@ -44,43 +44,52 @@ def nba_common_player_info(
 def nba_draft_combine_stats(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
+    return None
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_draft_history(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
+    return None
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_game(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
+    return None
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_game_info(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
+    return None
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_game_summary(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
+    return None
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_inactive_players(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
+    return None
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_line_score(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
-
+    return None
+    
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_officials(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
+    return None
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_other_stats(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
+    return None
