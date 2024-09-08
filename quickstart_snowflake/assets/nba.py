@@ -5,7 +5,6 @@ import sqlite3
 import pandas as pd
 import requests
 from dagster import AssetExecutionContext, MetadataValue, asset
-from wordcloud import STOPWORDS, WordCloud
 
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
