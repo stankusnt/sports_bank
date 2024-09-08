@@ -12,21 +12,21 @@ from wordcloud import STOPWORDS, WordCloud
 def nba_common_player_info(
     context: AssetExecutionContext, hackernews_topstory_ids: pd.DataFrame
 ) -> pd.DataFrame:
-    """Get items based on story ids from the HackerNews items endpoint. It may take 1-2 minutes to fetch all 500 items.
-
-    API Docs: https://github.com/HackerNews/API#items
+    """ 
     """
-    results = []
-    for item_id in hackernews_topstory_ids["item_ids"]:
-        item = requests.get(f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json").json()
-        results.append(item)
-        if len(results) % 20 == 0:
-            context.log.info(f"Got {len(results)} items so far.")
 
-    df = pd.DataFrame(results)
+    # Establish Sqlite connection via sqlite3 library
+    con = sqlite3.connect(f"{current_dir}/nba.sqlite")
+    # Create a cursor
+    cur = con.cursor()
 
-    # Rename the column to avoid conflict with the reserved keyword "by"
-    df.rename(columns={"by": "by_"}, inplace=True)
+    # Retrieve table data
+    table_name = cur.execute(f"SELECT * FROM common_player_info").fetchall()
+    # Retrieve table schema
+    table_metadata = cur.execute(f"PRAGMA table_info('common_player_info')").fetchall()
+    table_columns = [record[1] for record in table_metadata]
+    # Manifest dataframe
+    table_df = pd.DataFrame(table_name, schema=table_columns)
 
     # Dagster supports attaching arbitrary metadata to asset materializations. This metadata will be
     # shown in the run logs and also be displayed on the "Activity" tab of the "Asset Details" page in the UI.
@@ -34,12 +34,11 @@ def nba_common_player_info(
     # Read more about in asset metadata in https://docs.dagster.io/concepts/metadata-tags/asset-metadata
     context.add_output_metadata(
         {
-            "num_records": len(df),
+            "num_records": len(table_df),
             "preview": MetadataValue.md(df.head().to_markdown()),
         }
     )
-    return df
-
+    return table_df 
 
 @asset(group_name="nba", compute_kind="NBA SQLLite")
 def nba_draft_combine_stats(
