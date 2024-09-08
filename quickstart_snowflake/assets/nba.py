@@ -14,12 +14,11 @@ def nba_common_player_info(
 ) -> pd.DataFrame:
     """ 
     """
-
-    # Establish Sqlite connection via sqlite3 library
-    con = sqlite3.connect(f"{current_dir}/nba.sqlite")
+    nba_db_location = "/Users/stankusnt/nba-project/nba.sqlite"
+    # Establish Sqlite connection 
+    nba_db_con = sqlite3.connect(f"{nba_db_location}")
     # Create a cursor
-    cur = con.cursor()
-
+    cur = nba_db_con.cursor()
     # Retrieve table data
     table_name = cur.execute(f"SELECT * FROM common_player_info").fetchall()
     # Retrieve table schema
