@@ -25,7 +25,7 @@ def nba_common_player_info(
     table_metadata = cur.execute(f"PRAGMA table_info('common_player_info')").fetchall()
     table_columns = [record[1] for record in table_metadata]
     # Manifest dataframe
-    table_df = pd.DataFrame(table_name, schema=table_columns)
+    table_df = pd.DataFrame(table_name, columns=table_columns)
 
     # Dagster supports attaching arbitrary metadata to asset materializations. This metadata will be
     # shown in the run logs and also be displayed on the "Activity" tab of the "Asset Details" page in the UI.
