@@ -1,4 +1,4 @@
 locations:
 - code_source:
-    module_name: quickstart_snowflake.definitions
+    module_name: sports_bank.definitions
   location_name: sports_bank
