@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: sports_bank
+Version: 0.0.0
+Requires-Dist: dagster==1.8.6
+Requires-Dist: dagster-cloud
+Requires-Dist: dagster-snowflake==0.24.6
+Requires-Dist: dagster-webserver
+Requires-Dist: geopandas
+Requires-Dist: kaleido
+Requires-Dist: pandas
+Requires-Dist: plotly
+Requires-Dist: shapely
+Requires-Dist: nba_api
+Requires-Dist: requests
+Provides-Extra: dev
+Requires-Dist: dagster-webserver; extra == "dev"
+Requires-Dist: pytest; extra == "dev"

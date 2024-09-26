@@ -1,4 +1,4 @@
 locations:
 - code_source:
-    module_name: sports_bank.definitions
+    module_name: sports_bank
   location_name: sports_bank

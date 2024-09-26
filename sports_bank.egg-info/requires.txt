@@ -1,0 +1,15 @@
+dagster==1.8.6
+dagster-cloud
+dagster-snowflake==0.24.6
+dagster-webserver
+geopandas
+kaleido
+pandas
+plotly
+shapely
+nba_api
+requests
+
+[dev]
+dagster-webserver
+pytest
