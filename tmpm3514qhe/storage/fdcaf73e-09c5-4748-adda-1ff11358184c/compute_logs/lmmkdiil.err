@@ -1,0 +1,2 @@
+[32m2024-09-27 07:51:26 -0600[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - fdcaf73e-09c5-4748-adda-1ff11358184c - 2523 - LOGS_CAPTURED - Started capturing logs in process (pid: 2523).
+[32m2024-09-27 07:51:26 -0600[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - fdcaf73e-09c5-4748-adda-1ff11358184c - 2523 - player_stats_reg_season - STEP_START - Started execution of step "player_stats_reg_season".
