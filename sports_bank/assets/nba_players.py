@@ -16,77 +16,31 @@ from dagster import asset, MaterializeResult, AssetSpec, multi_asset
 from dagster_snowflake import SnowflakeResource
 import snowflake.connector.errors
 
+## TODO: Check to see if processing players one by one to Snowflake may be easier.
 
-def call_nba_api() -> DataFrame:
+def call_nba_api(dataset: str) -> DataFrame:
     """
         Call nba API for a given dataset.
     """
     # Retrieve list of of all players, each attached to a dictionary
-    nba_players = players.get_players()
 
-    # Loop through each player and create dataframe
-    CareerTotalsAllStarSeasonDataset = []
-    CareerTotalsCollegeSeasonDataset = []
-    CareerTotalsRegularSeasonDataset = []
-    SeasonRankingsPostSeasonDataset = []
-    SeasonRankingsRegularSeasonDataset = []
-    SeasonTotalsAllStarSeasonDataset = []
-    SeasonTotalsCollegeSeasonDataset = []
-    SeasonTotalsPostSeasonDataset = []
-    SeasonTotalsRegularSeasonDataset = []
+    nba_players = players.get_players()
+    
+    full_dataset = []
     for player in nba_players:
         if player['is_active'] == True:
             print(f"Loading data for player: {player['id']}")
             try:
                 career_stats = playercareerstats.PlayerCareerStats(player_id=player['id'])
                 career_dict = career_stats.get_normalized_dict()
-
-                CareerTotalsAllStarSeasonDataset += career_dict['CareerTotalsAllStarSeason']
-                CareerTotalsCollegeSeasonDataset += career_dict['CareerTotalsCollegeSeason']
-                CareerTotalsRegularSeasonDataset += career_dict['CareerTotalsRegularSeason']
-                SeasonRankingsPostSeasonDataset += career_dict['SeasonRankingsPostSeason']    
-                SeasonRankingsRegularSeasonDataset += career_dict['SeasonRankingsRegularSeason']
-                SeasonTotalsAllStarSeasonDataset += career_dict['SeasonTotalsAllStarSeason']
-                SeasonTotalsCollegeSeasonDataset += career_dict['SeasonTotalsCollegeSeason']
-                SeasonTotalsPostSeasonDataseet += career_dict['SeasonTotalsPostSeason']    
-                SeasonTotalsRegularSeasonDataset += career_dict['SeasonTotalsRegularSeason']                  
+                full_dataset += career_dict[f'{dataset}']                 
             except Exception as e:
                 print(f"Failed API call at {player['id']} with the following exception: {e}")
             finally:
                 # Set time to sleep to prevent rate limits
                 time.sleep(30)
     
-    return CareerTotalsAllStarSeasonDataset, CareerTotalsCollegeSeasonDataset, CareerTotalsRegularSeasonDataset, SeasonRankingsPostSeasonDataset, SeasonRankingsRegularSeasonDataset, SeasonTotalsAllStarSeasonDataset, SeasonTotalsCollegeSeasonDataset, SeasonTotalsPostSeasonDataseet, SeasonTotalsRegularSeasonDataset
-
-@multi_asset(
-    specs=[
-        AssetSpec("CareerTotalsAllStarSeason", skippable=True), 
-        AssetSpec("CareerTotalsCollegeSeason", skippable=True),
-        AssetSpec("CareerTotalsRegularSeason", skippable=True), 
-        AssetSpec("SeasonRankingsPostSeason", skippable=True),
-        AssetSpec("SeasonRankingsRegularSeason", skippable=True), 
-        AssetSpec("SeasonTotalsAllStarSeason", skippable=True),
-        AssetSpec("SeasonTotalsCollegeSeason", skippable=True), 
-        AssetSpec("SeasonTotalsPostSeason", skippable=True),
-        AssetSpec("SeasonTotalsRegularSeason", skippable=True)     
-    ]
-)
-def player_career_stats():
-
-    CareerTotalsAllStarSeasonDataset, CareerTotalsCollegeSeasonDataset, \
-    CareerTotalsRegularSeasonDataset, SeasonRankingsPostSeasonDataset, \
-    SeasonRankingsRegularSeasonDataset, SeasonTotalsAllStarSeasonDataset, \
-    SeasonTotalsCollegeSeasonDataset, SeasonTotalsPostSeasonDataseet, SeasonTotalsRegularSeasonDataset = call_nba_api()
-    
-    yield load_to_snowflake(pd.DataFrame.from_dict(CareerTotalsAllStarSeasonDataset))
-    yield load_to_snowflake(pd.DataFrame.from_dict(CareerTotalsCollegeSeasonDataset))
-    yield load_to_snowflake(pd.DataFrame.from_dict(CareerTotalsRegularSeasonDataset))
-    yield load_to_snowflake(pd.DataFrame.from_dict(SeasonRankingsPostSeasonDataset))
-    yield load_to_snowflake(pd.DataFrame.from_dict(SeasonRankingsRegularSeasonDataset))
-    yield load_to_snowflake(pd.DataFrame.from_dict(SeasonTotalsAllStarSeasonDataset))
-    yield load_to_snowflake(pd.DataFrame.from_dict(SeasonTotalsCollegeSeasonDataset))
-    yield load_to_snowflake(pd.DataFrame.from_dict(SeasonTotalsPostSeasonDataseet))
-    yield load_to_snowflake(pd.DataFrame.from_dict(SeasonTotalsRegularSeasonDataset))
+    return full_dataset
 
 
 def load_to_snowflake(nba_dataframe: DataFrame, table_name: str, database_name: str, schema: str, database: SnowflakeResource):
@@ -115,33 +69,53 @@ def load_to_snowflake(nba_dataframe: DataFrame, table_name: str, database_name: 
 @asset
 def player_stats_reg_season(database: SnowflakeResource):
     """
-        Pandas dataframe for regular season stats for each player.
+        Snowflake table for regular season stats for each player.
     """
 
-    nba_player_stats_reg_season_df = call_nba_api_playercareerstats("SeasonTotalsRegularSeason")
-    # Retrieve list of of all players, each attached to a dictionary
-    nba_players = players.get_players()
+    nba_player_stats_reg_season = call_nba_api(dataset="SeasonTotalsRegularSeason")
+
+    nba_players_stats_reg_season_df = pd.DataFrame.from_dict(nba_player_stats_reg_season)
+
+    return load_to_snowflake(nba_players_stats_reg_season_df, table_name="player_stats_reg_season", database_name="DB_SPORTSBANK_DEV", schema="NBA")
+
+@asset
+def player_stats_post_season(database: SnowflakeResource):
+    """
+        Snowflake table for post season stats for each player.
+    """
+
+    nba_player_stats_post_season = call_nba_api(dataset="SeasonTotalsPostSeason")
+
+    nba_player_stats_post_season_df = pd.DataFrame.from_dict(nba_player_stats_post_season)
+
+    return load_to_snowflake(nba_player_stats_post_season_df, table_name="player_stats_post_season", database_name="DB_SPORTSBANK_DEV", schema="NBA")
 
 
-    # Loop through each player and create dataframe
-    nba_players_stats_reg_season = []
-    for player in nba_players:
-        if player['is_active'] == True:
-            print(f"Loading data for player: {player['id']}")
-            try:
-                career_stats = playercareerstats.PlayerCareerStats(player_id=player['id'])
-                career_dict = career_stats.get_normalized_dict()
-                reg_season_totals = career_dict['SeasonTotalsRegularSeason']
-                nba_players_stats_reg_season += reg_season_totals
-            except Exception as e:
-                print(f"Failed API call at {player['id']} with the following exception: {e}")
-            finally:
-                # Set time to sleep to prevent rate limits
-                time.sleep(30)
+@asset
+def player_stats_all_star_season(database: SnowflakeResource):
+    """
+        Snowflake table for all star season stats for each player.
+    """
 
-    nba_players_stats_reg_season_df = pd.DataFrame.from_dict(nba_players_stats_reg_season) 
+    nba_player_stats_all_star_season = call_nba_api(dataset="SeasonTotalsAllStarSeason")
 
-    return load_to_snowflake(nba_players_stats_reg_season_df, table_name="player_stats_regular_season", database="DB_SPORTSBANK_DEV", schema="NBA")
+    nba_player_stats_all_star_season_df = pd.DataFrame.from_dict(nba_player_stats_all_star_season)
+
+    return load_to_snowflake(career_totals_all_star_season_df, table_name="player_stats_all_star_season", database_name="DB_SPORTSBANK_DEV", schema="NBA")
+
+
+@asset
+def player_stats_college_season(database: SnowflakeResource):
+    """
+        Snowflake table for college season stats for each player.
+    """
+
+    nba_player_stats_college_season = call_nba_api(dataset="SeasonTotalsCollegeSeason")
+
+    nba_player_stats_college_season_df = pd.DataFrame.from_dict(nba_player_stats_college_season)
+
+    return load_to_snowflake(career_totals_all_star_season_df, table_name="player_stats_college_season", database_name="DB_SPORTSBANK_DEV", schema="NBA")
+
 
 @asset
 def player_info(database: SnowflakeResource):
